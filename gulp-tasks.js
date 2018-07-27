@@ -1,7 +1,7 @@
 var gulp = require('gulp'),
   args = require('yargs').argv,
   browserSync = require('browser-sync'),
-  config = require('./build/build.config')(),
+  config = require('./gulp.config')(),
   del = require('del'),
   embedTemplates = require('@scci-itops/gulp-ng-embed-template'),
   Minimize = require('minimize'),
@@ -19,8 +19,6 @@ module.exports = function () {
   if (!isProd) {
     isDebug = true;
   }
-  const isWatchMode = args.watch;
-  const isNotWatchMode = !isWatchMode;
   const canCreateSourceMap = isDebug || args.sourcemaps;
   const canCreateReport = isDebug || args.report;
   const canUglify = isProd || args.uglify;
@@ -40,17 +38,17 @@ module.exports = function () {
   const buildLib = gulp.series(optimizeVendor);
   var cleanCode = gulp.series(cleanDist);
   const build = args.watch ? autoBuild : buildOnce;
-  const test = gulp.parallel(
+  const testOnce = gulp.parallel(
     (done) => startTests(true /* singleRun */, done)
   );
+  const test = args.watch ? autoTest : testOnce;
 
   var tasks = {
-    autoTest: autoTest,
-    compile: args.watch ? autoCompile : compile,
-    clean: cleanCode,
     build: build,
     buildOnce: buildOnce,
     buildLib: buildLib,
+    compile: args.watch ? autoCompile : compile,
+    clean: cleanCode,
     cleanBuild: gulp.series(
       cleanCode,
       gulp.parallel(buildLib, build)),

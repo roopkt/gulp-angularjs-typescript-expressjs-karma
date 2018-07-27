@@ -8,8 +8,8 @@
     "build:dev": "gulp compile --watch",
     "serve:dev": "gulp serve-dev",
     "start": "run-p build:dev serve:dev",
-    "test": "gulp test",
-    "test:dev": "gulp auto-test"
+    "test": "gulp test --watch",
+    "test:sr": "gulp test"
   },
   "keywords": [],
   "author": "",

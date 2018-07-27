@@ -61,25 +61,11 @@ module.exports = function crateConfig() {
   };
 
   config.karma = getKarmaOptions();
-  config.getAllJs = getAllJs();
+
   return config;
 
-  function getAllJs() {
-    var deps = config.deps;
-    var allJs = [];
-    for (var js in deps) {
-      if (js !== 'libs') {
-        allJs = allJs.concat(deps[js]);
-      }
-    }
-    return allJs;
-  }
 
   function getKarmaOptions() {
-    const devDeps = [
-      ".."
-    ];
-
     var options = {
       files: [].concat(
         config.specHelpers,
