@@ -42,6 +42,7 @@ module.exports = function () {
 
   //TASKS
   var tasks = {
+    build: optimize,
     compile: args.watch ? autoCompile : compileOnce,
     clean: cleanCode,
     serve: serve,
@@ -51,7 +52,9 @@ module.exports = function () {
   };
 
   return tasks;
+  function build() {
 
+  }
 
   function cleanDist(done) {
     clean(config.dest + '**/*.{html,css,js}', done);
@@ -136,17 +139,33 @@ module.exports = function () {
   }
 
   function optimize(done) {
-    log('Optimizing code in ' + getRunMode() + ' mode');
+    log('Optimizing javascript, css, html in ' + getRunMode() + ' mode');
+    var assets = $.useref.assets({ searchPath: './' });
+    var cssFilter = $.filter('**/*.css');
+    var jsLibFilter = $.filter('**/' + config.optimized.lib);
+    var jsAppFilter = $.filter('**/' + config.optimized.app);
 
-    // const allSrc = config.getAllJs();
-    // return gulp
-    //   .src(allSrc)
-    //   .pipe($.concat(config.output.client))
-    //   .pipe($.plumber())
-    //   .pipe($.if(canUglify, $.uglify()))
-    //   .pipe(gulp.dest(config.dest))
-    //   .on('end', () => done())
-    //   .on('error', (e) => done(e));
+    return gulp
+      .src(config.index)
+      .pipe($.plumber())
+      .pipe(assets)
+      .pipe(cssFilter)
+      .pipe($.csso())
+      .pipe(cssFilter.restore())
+      .pipe(jsLibFilter)
+      .pipe($.if(canUglify, $.uglify()))
+      .pipe(jsLibFilter.restore())
+      .pipe(jsAppFilter)
+      .pipe($.ngAnnotate())
+      .pipe($.if(canUglify, $.uglify()))
+      .pipe(jsAppFilter.restore())
+      .pipe($.rev())
+      .pipe(assets.restore())
+      .pipe($.useref())
+      .pipe($.revReplace())
+      .pipe(gulp.dest(config.dest))
+      .pipe($.rev.manifest())
+      .pipe(gulp.dest(config.dest));
   }
 
   function optimizeVendor(done) {

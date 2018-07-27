@@ -1,6 +1,8 @@
 var gulp = require('gulp'),
-  tasks = require('./gulp-tasks')();
+  tasks = require('./gulp/gulp-tasks')();
 
+
+gulp.task('build', tasks.build);
 /**
  * compile: it compiles javascript
  * @watch : continous compiles
@@ -8,7 +10,7 @@ var gulp = require('gulp'),
 gulp.task('compile', tasks.compile);
 
 /**
- * clean: it cleans destination folder and other temp folders 
+ * clean: it cleans destination folder and other temp folders
  */
 gulp.task('clean', tasks.clean);
 

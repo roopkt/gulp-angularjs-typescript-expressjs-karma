@@ -38,7 +38,7 @@ module.exports = function crateConfig() {
     less: [],
     nodeServer: './src/server/app.js',
     out: out,
-    optimize: {
+    optimized: {
       app: 'app.js',
       lib: 'lib.js'
     },
