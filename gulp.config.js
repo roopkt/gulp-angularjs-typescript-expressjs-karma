@@ -38,9 +38,9 @@ module.exports = function crateConfig() {
     less: [],
     nodeServer: './src/server/app.js',
     out: out,
-    output: {
-      client: 'client.bundle.js',
-      vendor: 'vendor.bundle.js',
+    optimize: {
+      app: 'app.js',
+      lib: 'lib.js'
     },
     port: 2333,
     root: root,

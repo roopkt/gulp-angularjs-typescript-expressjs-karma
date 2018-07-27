@@ -1,15 +1,31 @@
 var gulp = require('gulp'),
   tasks = require('./gulp-tasks')();
 
+/**
+ * compile: it compiles javascript
+ * @watch : continous compiles
+ */
 gulp.task('compile', tasks.compile);
-gulp.task('test', tasks.test);
+
+/**
+ * clean: it cleans destination folder and other temp folders 
+ */
 gulp.task('clean', tasks.clean);
-gulp.task('build', tasks.build);
-gulp.task('build-once', tasks.buildOnce);
-gulp.task('clean-build', tasks.cleanBuild);
-gulp.task('build-lib', tasks.buildLib);
+
+/**
+ * serve-dev: it will serve the index.html from client folder
+ */
 gulp.task('serve-dev', tasks.serveDev);
-gulp.task('auto-test', tasks.autoTest);
+
+/**
+ * serve-dev: it will serve the index.html from destination folder
+ */
+gulp.task('serve-build', tasks.serveBuild);
+
+/**
+ * test: it run tests
+ * @watch : continous tests
+ */
 gulp.task('test', tasks.test);
 
 

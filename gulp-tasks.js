@@ -13,7 +13,7 @@ var gulp = require('gulp'),
 var workingDir = process.cwd();
 
 module.exports = function () {
-
+  //PROPERTIES
   let isDebug = args.debug;
   const isProd = args.prod;
   if (!isProd) {
@@ -22,49 +22,36 @@ module.exports = function () {
   const canCreateSourceMap = isDebug || args.sourcemaps;
   const canCreateReport = isDebug || args.report;
   const canUglify = isProd || args.uglify;
+  const canAutoRun = args.watch || args.sr;
+  const canServeDev = args.dev ? true : false;
   var port = process.env.PORT || config.port;
 
-  const buildOnce = gulp
-    .series(
-      compile,
-      optimize,
-      copyIndex);
-  const autoBuild = (done) => gulp.watch(config.watchFiles, buildOnce);
-
+  //FUNCTIONS
   const autoTest = gulp.parallel(
     (done) => startTests(false/* singleRun */, done)
   );
-  const autoCompile = (done) => gulp.watch(config.watchFiles, compile).on('end', () => done());
-  const buildLib = gulp.series(optimizeVendor);
+  const autoCompile = () => gulp.watch(config.watchFiles, (done) => compileOnce(done));
   var cleanCode = gulp.series(cleanDist);
-  const build = args.watch ? autoBuild : buildOnce;
+  const serveDev = gulp.series(compileOnce, () => startServe(true/* isDev */));
+  const serveBuild = gulp.series(compileOnce, () => startServe(false/* isDev */));
+  const serve = canServeDev ? serveDev : serveBuild;
   const testOnce = gulp.parallel(
     (done) => startTests(true /* singleRun */, done)
   );
-  const test = args.watch ? autoTest : testOnce;
+  const test = canAutoRun ? autoTest : testOnce;
 
+  //TASKS
   var tasks = {
-    build: build,
-    buildOnce: buildOnce,
-    buildLib: buildLib,
-    compile: args.watch ? autoCompile : compile,
+    compile: args.watch ? autoCompile : compileOnce,
     clean: cleanCode,
-    cleanBuild: gulp.series(
-      cleanCode,
-      gulp.parallel(buildLib, build)),
     serve: serve,
-    serveDev: gulp.series(compile, () => serve(true/* isDev */)),
+    serveDev: serveDev,
+    serveBuild: serveBuild,
     test: test
   };
 
   return tasks;
 
-  function copyIndex(done) {
-    gulp
-      .src(config.index)
-      .pipe(gulp.dest(config.dest))
-      .on('end', () => done());
-  }
 
   function cleanDist(done) {
     clean(config.dest + '**/*.{html,css,js}', done);
@@ -80,7 +67,7 @@ module.exports = function () {
     log('File ' + event.path.replace(srcPattern, '') + ' ' + event.type);
   }
 
-  function compile(done) {
+  function compileOnce(done) {
     log('Compiling Typescripts to JS in ' + getRunMode() + ' mode');
     if (canCreateSourceMap) {
       log('Creating sourcemaps');
@@ -151,15 +138,15 @@ module.exports = function () {
   function optimize(done) {
     log('Optimizing code in ' + getRunMode() + ' mode');
 
-    const allSrc = config.getAllJs();
-    return gulp
-      .src(allSrc)
-      .pipe($.concat(config.output.client))
-      .pipe($.plumber())
-      .pipe($.if(canUglify, $.uglify()))
-      .pipe(gulp.dest(config.dest))
-      .on('end', () => done())
-      .on('error', (e) => done(e));
+    // const allSrc = config.getAllJs();
+    // return gulp
+    //   .src(allSrc)
+    //   .pipe($.concat(config.output.client))
+    //   .pipe($.plumber())
+    //   .pipe($.if(canUglify, $.uglify()))
+    //   .pipe(gulp.dest(config.dest))
+    //   .on('end', () => done())
+    //   .on('error', (e) => done(e));
   }
 
   function optimizeVendor(done) {
@@ -177,39 +164,6 @@ module.exports = function () {
       .on('error', (e) => done(e));
   }
 
-  // function startSingleRunTests(done) {
-  //   startTests(true, done);
-  // }
-
-  // function startAutoTests(done) {
-  //   log('Karma: started auto tests');
-
-  //   startTests(false, done);
-  // }
-
-  // function test(done) {
-  //   var singleRun = args.singleRun ? true : false;
-  //   var msg = singleRun ? 'Karma: started  with Single Run ' : 'Karma: started with Auto Test';
-
-  //   log(msg);
-
-  //   var config = {
-  //     configFile: workingDir + '/karma.conf.js',
-  //     singleRun: singleRun
-  //   };
-
-  //   new Server(config, karmaCompleted).start();
-
-  //   function karmaCompleted(karmaResult) {
-  //     log('karma completed!');
-
-  //     if (karmaResult === 1) {
-  //       done('karma: tests failed with code ' + karmaResult);
-  //     } else {
-  //       done();
-  //     }
-  //   }
-  // }
   function startTests(singleRun, done) {
     var child;
     var fork = require('child_process').fork;
@@ -253,7 +207,7 @@ module.exports = function () {
     }
   }
 
-  function serve(isDev, specRunner) {
+  function startServe(isDev, specRunner) {
     var nodeOptions = {
       script: config.nodeServer,
       delayTime: 1,

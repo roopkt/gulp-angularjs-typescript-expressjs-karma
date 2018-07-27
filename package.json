@@ -5,11 +5,14 @@
   "main": "index.js",
   "scripts": {
     "gulp": "gulp",
-    "build:dev": "gulp compile --watch",
+    "compile:dev": "gulp compile --watch --debug",
     "serve:dev": "gulp serve-dev",
-    "start": "run-p build:dev serve:dev",
+    "start": "concurrently --kill-others \"npm run compile:dev\" \"npm run serve:dev\"",
     "test": "gulp test --watch",
-    "test:sr": "gulp test"
+    "test:sr": "gulp test",
+    "serve:build": "gulp serve-build",
+    "build": "gulp build",
+    "compile": "gulp compile --prod"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +24,7 @@
     "@types/jasmine": "^2.8.8",
     "@types/jquery": "^2.0.49",
     "browser-sync": "^2.24.6",
+    "concurrently": "^3.6.1",
     "connect-livereload": "^0.6.0",
     "del": "^3.0.0",
     "gulp": "github:gulpjs/gulp#4.0",
