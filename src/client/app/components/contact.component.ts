@@ -1,10 +1,13 @@
 module MySample {
+  export interface IContactScope extends ng.IScope {
+    name: string;
+  }
   export class ContactController implements ng.IController {
     lastName: string;
     $onInit() {
       this.lastName = "Tiwari";
     }
-    constructor($scope: ng.IScope) {
+    constructor($scope: IContactScope) {
       $scope.name = "Rupesh";
     }
   }

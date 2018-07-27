@@ -9,6 +9,8 @@ gulp.task('build-once', tasks.buildOnce);
 gulp.task('clean-build', tasks.cleanBuild);
 gulp.task('build-lib', tasks.buildLib);
 gulp.task('serve-dev', tasks.serveDev);
+gulp.task('auto-test', tasks.autoTest);
+gulp.task('test', tasks.test);
 
 
 

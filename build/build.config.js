@@ -4,6 +4,7 @@ module.exports = function crateConfig() {
   var deps = require('./deps.json');
 
   var root = './src/';
+  var report = './report/';
   var basePath = path.join(__dirname, 'src/');
   var client = './src/client/';
   var clientApp = './src/client/app/';
@@ -48,8 +49,10 @@ module.exports = function crateConfig() {
     port: 2333,
     root: root,
     server: server,
+    serverIntegrationSpecs: [],
     specRunner: specRunnerFile,
     shouldUseBasePath: false,
+    specHelpers: [client + 'test-helpers/*.js'],
     temp: temp,
     watchFiles: [
       clientApp + "**/*.ts",
@@ -57,7 +60,11 @@ module.exports = function crateConfig() {
     ]
   };
 
-  config.getAllJs = function () {
+  config.karma = getKarmaOptions();
+  config.getAllJs = getAllJs();
+  return config;
+
+  function getAllJs() {
     var deps = config.deps;
     var allJs = [];
     for (var js in deps) {
@@ -67,7 +74,36 @@ module.exports = function crateConfig() {
     }
     return allJs;
   }
-  return config;
+
+  function getKarmaOptions() {
+    const devDeps = [
+      ".."
+    ];
+
+    var options = {
+      files: [].concat(
+        config.specHelpers,
+        root + 'lib/angular/angular.js',
+        root + 'lib/angular/angular-route.js',
+        root + 'lib/angular/angular-mocks.js',
+        client + '**/*.module.js',
+        client + '**/*.js',
+      ),
+      exclude: [],
+      coverage: {
+        dir: report + 'coverage',
+        reporters: [
+          { type: 'html', subdir: 'report-html' },
+          { type: 'lcov', subdir: 'report-lcov' },
+          { type: 'text-summary' }
+        ]
+      },
+      preprocessors: {}
+    };
+    options.preprocessors[clientApp + '**/!(*.spec)+(.js)'] = ['coverage'];
+    return options;
+  }
+
 }
 
 

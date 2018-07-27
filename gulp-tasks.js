@@ -1,16 +1,13 @@
 var gulp = require('gulp'),
   args = require('yargs').argv,
   browserSync = require('browser-sync'),
-  reload = browserSync.reload,
   config = require('./build/build.config')(),
   del = require('del'),
   embedTemplates = require('@scci-itops/gulp-ng-embed-template'),
-  es = require('event-stream'),
   Minimize = require('minimize'),
   minimize = new Minimize(),
   $ = require('gulp-load-plugins')({ lazy: true }),
   path = require('path'),
-  Server = require('karma').Server,
   tsProject;
 
 var workingDir = process.cwd();
@@ -36,12 +33,19 @@ module.exports = function () {
       copyIndex);
   const autoBuild = (done) => gulp.watch(config.watchFiles, buildOnce);
 
+  const autoTest = gulp.parallel(
+    (done) => startTests(false/* singleRun */, done)
+  );
   const autoCompile = (done) => gulp.watch(config.watchFiles, compile).on('end', () => done());
   const buildLib = gulp.series(optimizeVendor);
   var cleanCode = gulp.series(cleanDist);
   const build = args.watch ? autoBuild : buildOnce;
+  const test = gulp.parallel(
+    (done) => startTests(true /* singleRun */, done)
+  );
 
   var tasks = {
+    autoTest: autoTest,
     compile: args.watch ? autoCompile : compile,
     clean: cleanCode,
     build: build,
@@ -50,9 +54,9 @@ module.exports = function () {
     cleanBuild: gulp.series(
       cleanCode,
       gulp.parallel(buildLib, build)),
-    test: test,
     serve: serve,
-    serveDev: gulp.series(compile, () => serve(true/* isDev */))
+    serveDev: gulp.series(compile, () => serve(true/* isDev */)),
+    test: test
   };
 
   return tasks;
@@ -175,34 +179,76 @@ module.exports = function () {
       .on('error', (e) => done(e));
   }
 
-  function startSingleRunTests(done) {
-    startTests(true, done);
-  }
+  // function startSingleRunTests(done) {
+  //   startTests(true, done);
+  // }
 
-  function startAutoTests(done) {
-    log('Karma: started auto tests');
+  // function startAutoTests(done) {
+  //   log('Karma: started auto tests');
 
-    startTests(false, done);
-  }
+  //   startTests(false, done);
+  // }
 
-  function test(done) {
-    var singleRun = args.singleRun ? true : false;
-    var msg = singleRun ? 'Karma: started  with Single Run ' : 'Karma: started with Auto Test';
+  // function test(done) {
+  //   var singleRun = args.singleRun ? true : false;
+  //   var msg = singleRun ? 'Karma: started  with Single Run ' : 'Karma: started with Auto Test';
 
-    log(msg);
+  //   log(msg);
 
-    var config = {
-      configFile: workingDir + '/karma.conf.js',
-      singleRun: singleRun
-    };
+  //   var config = {
+  //     configFile: workingDir + '/karma.conf.js',
+  //     singleRun: singleRun
+  //   };
 
-    new Server(config, karmaCompleted).start();
+  //   new Server(config, karmaCompleted).start();
+
+  //   function karmaCompleted(karmaResult) {
+  //     log('karma completed!');
+
+  //     if (karmaResult === 1) {
+  //       done('karma: tests failed with code ' + karmaResult);
+  //     } else {
+  //       done();
+  //     }
+  //   }
+  // }
+  function startTests(singleRun, done) {
+    var child;
+    var fork = require('child_process').fork;
+    var Server = require('karma').Server;
+    var excludeFiles = [];
+    var serverSpecs = config.serverIntegrationSpecs;
+
+    if (args.startServers) { // gulp test --startServers
+      log('Starting server');
+      var savedEnv = process.env;
+      savedEnv.NODE_ENV = 'dev';
+      savedEnv.PORT = 8888;
+      child = fork(config.nodeServer);
+    } else {
+      if (serverSpecs && serverSpecs.length) {
+        excludeFiles = serverSpecs;
+      }
+    }
+
+    new Server({
+      configFile: __dirname + '/karma.conf.js',
+      exclude: excludeFiles,
+      singleRun: !!singleRun
+    }, karmaCompleted).start();
 
     function karmaCompleted(karmaResult) {
-      log('karma completed!');
-
+      log('Karma completed!');
+      if (child) {
+        log('Shutting down the child process');
+        child.kill();
+      }
       if (karmaResult === 1) {
-        done('karma: tests failed with code ' + karmaResult);
+        done(
+          new $.util.PluginError('karma', {
+            message: 'karma: tests failed with code ' + karmaResult
+          })
+        );
       } else {
         done();
       }
@@ -252,7 +298,11 @@ module.exports = function () {
       // gulp.watch([config.less], ['styles'])
       //   .on('change', changeEvent);
     } else {
-      gulp.watch([config.less, config.js, config.html], ['optimize', browserSync.reload])
+      gulp.watch([
+        config.less,
+        config.js,
+        config.html],
+        gulp.series(optimize, browserSync.reload))
         .on('change', changeEvent);
     }
 
@@ -285,7 +335,6 @@ module.exports = function () {
 
     browserSync(options);
   }
-
 
 }
 
