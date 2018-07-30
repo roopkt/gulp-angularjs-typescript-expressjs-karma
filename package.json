@@ -1,7 +1,7 @@
 {
-  "name": "gulp-angularjs-typescript-server",
+  "name": "@branding/gulp-angularjs-typescript-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "a sample project showing capability for running angularjs app with gulp, expressjs and karma",
   "main": "index.js",
   "scripts": {
     "gulp": "gulp",
