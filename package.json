@@ -64,7 +64,6 @@
     "karma-jasmine-html-reporter": "^1.2.0",
     "karma-jasmine-sinon": "^1.0.4",
     "karma-ng-annotate-preprocessor": "0.0.1",
-    "karma-phantomjs-launcher": "^1.0.4",
     "karma-sinon": "^1.0.5",
     "karma-wrap-iife-preprocessor": "0.0.1",
     "less": "^3.0.4",

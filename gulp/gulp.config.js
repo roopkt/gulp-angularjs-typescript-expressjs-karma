@@ -11,7 +11,7 @@ module.exports = function crateConfig() {
   var client = path.join(root, 'client/');
   var clientApp = path.join(client, 'app/');
   var index = path.join(client, 'index.html');
-  var specRunnerFile = path.join(root, 'specs.html');
+
   var server = path.join(root, 'server/');
 
   var config = {
@@ -48,7 +48,7 @@ module.exports = function crateConfig() {
     root: root,
     server: server,
     serverIntegrationSpecs: [],
-    specRunner: specRunnerFile,
+    specRunner: '',
     shouldUseroot: false,
     specHelpers: [client + 'test-helpers/*.js'],
     temp: temp,
