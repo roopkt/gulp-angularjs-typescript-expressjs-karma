@@ -17,7 +17,9 @@ module MySample {
       this.$scope.onSubmit(this.$scope.contactDetails);
     }
   }
+
   Module.controller('contactController', ContactController);
+  
   export class ContactDirective {
     controllerAs: string;
     controller: string;
