@@ -23,20 +23,23 @@ module.exports = function () {
   const canCreateSourceMap = isDebug || args.sourcemaps;
   const canCreateReport = isDebug || args.report;
   const canUglify = isProd || args.uglify;
-  const canAutoRun = args.watch || args.sr;
+  const canTestAlways = args.watch || args.sr;
   const canServeDev = args.dev ? true : false;
   var port = process.env.PORT || config.port;
 
   //FUNCTIONS
-  const startAutoCompile = (done) => compileOnce(done);
-  const autoCompile = () => gulp.watch(config.watchFiles, startAutoCompile);
+  const startCompileOnce = (done) => compileOnce(done);
+  const autoCompile = () => gulp.watch(config.watchFiles, startCompileOnce);
   var cleanCode = gulp.series(cleanDist);
   const compile = args.watch ? autoCompile : compileOnce;
   const startTestOnce = (done) => startTests(true /* singleRun */, done);
-  const startTestAlways = (done) => startTests(false/* singleRun */, done);
-  const testOnce = gulp.parallel(startTestOnce);
-  const testAlways = gulp.parallel(startTestAlways);
-  const test = canAutoRun ? testAlways : testOnce;
+  const startTestAlways = (done) => {
+    gulp.watch(config.watchFiles, startCompileOnce);
+    startTests(false/* singleRun */, done)
+  };
+  const testOnce = gulp.series(compileOnce, startTestOnce);
+  const testAlways = gulp.series(compileOnce, startTestAlways);
+  const test = canTestAlways ? testAlways : testOnce;
   const optimize = gulp.series(gulp.parallel(compileOnce, testOnce), startOptimize)
   const build = gulp.series(optimize, startBuild);
   const startServeDev = () => startServe(true/* isDev */);
@@ -218,7 +221,7 @@ module.exports = function () {
     new Server({
       configFile: __dirname + '/karma.conf.js',
       exclude: excludeFiles,
-      singleRun: !!singleRun
+      singleRun: singleRun
     }, karmaCompleted).start();
 
     function karmaCompleted(karmaResult) {

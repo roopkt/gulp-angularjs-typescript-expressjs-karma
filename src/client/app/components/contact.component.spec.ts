@@ -16,7 +16,7 @@ describe('contactcomponent', () => {
   });
 
   describe('controller', () => {
-    it('should have controller instance', () => {
+    it('should have controller', () => {
       expect(controller).toBeDefined();
     });
   });
