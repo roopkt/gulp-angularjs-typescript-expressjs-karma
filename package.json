@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "gulp": "gulp",
-    "start": "serve:dev",
+    "start": "npm run serve:dev",
     "test": "gulp test --watch",
     "build": "gulp build",
     "test:sr": "gulp test",

@@ -65,11 +65,11 @@ module.exports = function crateConfig() {
     var options = {
       files: [].concat(
         config.specHelpers,
-        root + 'lib/angular/angular.js',
-        root + 'lib/angular/angular-route.js',
-        root + 'lib/angular/angular-mocks.js',
-        client + '**/*.module.js',
-        client + '**/*.js',
+        workingDir + '/lib/angular/angular.js',
+        workingDir + '/lib/angular/angular-route.js',
+        workingDir + '/lib/angular/angular-mocks.js',
+        clientApp + '**/*.module.js',
+        clientApp + '**/*.js',
       ),
       exclude: [],
       coverage: {
