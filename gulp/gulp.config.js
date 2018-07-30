@@ -53,8 +53,16 @@ module.exports = function crateConfig() {
     specHelpers: [client + 'test-helpers/*.js'],
     temp: temp,
     watchFiles: [
+      '!' + clientApp + "**/*spec.ts",
       clientApp + "**/*.ts",
-      clientApp + "**/*.html"
+      clientApp + "**/*.html",
+      index
+    ],
+    watchFilesForTest: [
+      clientApp + "**/*spec.ts",
+      clientApp + "**/*.ts",
+      clientApp + "**/*.html",
+      index
     ]
   };
 

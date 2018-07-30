@@ -6,9 +6,9 @@
   "scripts": {
     "gulp": "gulp",
     "start": "npm run serve:dev",
-    "test": "gulp test --watch",
+    "test": "npm run test:sr -- --watch",
     "build": "gulp build",
-    "test:sr": "gulp test",
+    "test:sr": "gulp test --tsconfig tsconfig.test.json",
     "serve:build": "gulp serve --prod",
     "serve:dev": "gulp serve --dev",
     "compile:dev": "gulp compile --watch --debug"

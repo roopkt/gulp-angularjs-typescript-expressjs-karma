@@ -1,0 +1,12 @@
+var MySample;
+(function (MySample) {
+    MySample.Module = angular.module('app', ['ngRoute']);
+    MySample.Module.config(['$routeProvider', function ($routeProvider) {
+            $routeProvider
+                .when('/contact', {
+                template: '<contact></contact>'
+            });
+        }]);
+})(MySample || (MySample = {}));
+
+//# sourceMappingURL=data:application/json;charset=utf8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImFwcC9hcHAubW9kdWxlLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBLElBQU8sUUFBUSxDQVNkO0FBVEQsV0FBTyxRQUFRO0lBQ0YsZUFBTSxHQUFHLE9BQU8sQ0FBQyxNQUFNLENBQUMsS0FBSyxFQUFFLENBQUMsU0FBUyxDQUFDLENBQUMsQ0FBQztJQUN2RCxTQUFBLE1BQU0sQ0FBQyxNQUFNLENBQUMsQ0FBQyxnQkFBZ0IsRUFBRSxVQUFDLGNBQXVDO1lBQ3ZFLGNBQWM7aUJBQ1gsSUFBSSxDQUFDLFVBQVUsRUFDZDtnQkFDRSxRQUFRLEVBQUUscUJBQXFCO2FBQ2hDLENBQUMsQ0FBQztRQUNULENBQUMsQ0FBQyxDQUFDLENBQUM7QUFDTixDQUFDLEVBVE0sUUFBUSxLQUFSLFFBQVEsUUFTZCIsImZpbGUiOiJhcHAvYXBwLm1vZHVsZS5qcyIsInNvdXJjZXNDb250ZW50IjpbIm1vZHVsZSBNeVNhbXBsZSB7XG4gIGV4cG9ydCB2YXIgTW9kdWxlID0gYW5ndWxhci5tb2R1bGUoJ2FwcCcsIFsnbmdSb3V0ZSddKTtcbiAgTW9kdWxlLmNvbmZpZyhbJyRyb3V0ZVByb3ZpZGVyJywgKCRyb3V0ZVByb3ZpZGVyOiBuZy5yb3V0ZS5JUm91dGVQcm92aWRlcikgPT4ge1xuICAgICRyb3V0ZVByb3ZpZGVyXG4gICAgICAud2hlbignL2NvbnRhY3QnLFxuICAgICAgICB7XG4gICAgICAgICAgdGVtcGxhdGU6ICc8Y29udGFjdD48L2NvbnRhY3Q+JyxcbiAgICAgICAgfSk7XG4gIH1dKTtcbn1cbiJdfQ==

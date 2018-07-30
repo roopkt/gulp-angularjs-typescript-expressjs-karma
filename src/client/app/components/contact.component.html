@@ -1,3 +1,21 @@
-<div>
-    Welcome : {{name}} {{vm.lastName}}
+<div class=>
+    <div class="form-group">
+        <label for="exampleInputEmail1">Email address</label>
+        <input ng-model="contactDetails.email" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"
+            placeholder="Enter email">
+        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+    </div>
+    <div class="form-group">
+        <label for="exampleInputMessage1">Message</label>
+        <textarea ng-model="contactDetails.message" type="Message" class="form-control" id="exampleInputMessage1" placeholder="Message"></textarea>
+
+    </div>
+
+    <button type="submit" ng-click="vm.submit()" class="btn btn-primary">Submit</button>
+    <div class="alert alert-warning">
+        <h3>contactDetails JSON</h3>
+        <pre>
+{{contactDetails|json}}
+</pre>
+    </div>
 </div>

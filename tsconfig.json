@@ -27,6 +27,7 @@
     "src/client/**/*.ts"
   ],
   "exclude": [
+    "src/client/**/*.spec.ts",
     "./node_modules",
     "build"
   ],
