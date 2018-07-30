@@ -8,6 +8,7 @@ var gulp = require('gulp'),
   minimize = new Minimize(),
   $ = require('gulp-load-plugins')({ lazy: true }),
   path = require('path'),
+  _ = require('lodash'),
   tsProject;
 
 var workingDir = process.cwd();
@@ -27,34 +28,36 @@ module.exports = function () {
   var port = process.env.PORT || config.port;
 
   //FUNCTIONS
-  const autoTest = gulp.parallel(
-    (done) => startTests(false/* singleRun */, done)
-  );
-  const autoCompile = () => gulp.watch(config.watchFiles, (done) => compileOnce(done));
+  const startAutoCompile = (done) => compileOnce(done);
+  const autoCompile = () => gulp.watch(config.watchFiles, startAutoCompile);
   var cleanCode = gulp.series(cleanDist);
-  const serveDev = gulp.series(compileOnce, () => startServe(true/* isDev */));
-  const serveBuild = gulp.series(compileOnce, () => startServe(false/* isDev */));
+  const compile = args.watch ? autoCompile : compileOnce;
+  const startTestOnce = (done) => startTests(true /* singleRun */, done);
+  const startTestAlways = (done) => startTests(false/* singleRun */, done);
+  const testOnce = gulp.parallel(startTestOnce);
+  const testAlways = gulp.parallel(startTestAlways);
+  const test = canAutoRun ? testAlways : testOnce;
+  const optimize = gulp.series(gulp.parallel(compileOnce, testOnce), startOptimize)
+  const build = gulp.series(optimize, startBuild);
+  const startServeDev = () => startServe(true/* isDev */);
+  const startServeBuild = () => startServe(false/* isDev */);
+  const serveDev = gulp.series(compileOnce, startServeDev);
+  const serveBuild = gulp.series(compileOnce, optimize, startServeBuild);
   const serve = canServeDev ? serveDev : serveBuild;
-  const testOnce = gulp.parallel(
-    (done) => startTests(true /* singleRun */, done)
-  );
-  const test = canAutoRun ? autoTest : testOnce;
 
   //TASKS
   var tasks = {
-    build: optimize,
-    compile: args.watch ? autoCompile : compileOnce,
+    build: build,
+    compile: compile,
     clean: cleanCode,
     serve: serve,
     serveDev: serveDev,
     serveBuild: serveBuild,
-    test: test
+    test: test,
+    optimize: optimize,
   };
 
   return tasks;
-  function build() {
-
-  }
 
   function cleanDist(done) {
     clean(config.dest + '**/*.{html,css,js}', done);
@@ -66,8 +69,12 @@ module.exports = function () {
   }
 
   function changeEvent(event) {
-    var srcPattern = new RegExp('/.*(?=/' + config.source + ')/');
-    log('File ' + event.path.replace(srcPattern, '') + ' ' + event.type);
+    if (event.path) {
+      var srcPattern = new RegExp('/.*(?=/' + config.source + ')/');
+      log('File ' + event.path.replace(srcPattern, '') + ' ' + event.type);
+    } else {
+      log('File ' + event);
+    }
   }
 
   function compileOnce(done) {
@@ -138,33 +145,39 @@ module.exports = function () {
     }
   }
 
-  function optimize(done) {
+  function notify(options) {
+    var notifier = require('node-notifier');
+    var notifyOptions = {
+      sound: 'Bottle',
+      contentImage: config.icon,
+      icon: config.icon
+    };
+    _.assign(notifyOptions, options);
+    notifier.notify(notifyOptions);
+  }
+
+  function startBuild(done) {
+    log('Building everything');
+    const subTitle = 'Deployed to the ' + config.dest + ' folder.';
+    var msg = {
+      title: 'gulp build',
+      message: subTitle + '\n Running `gulp serve-build`',
+    };
+    del(config.temp);
+    log(msg);
+    notify(msg);
+    done();
+  }
+
+  function startOptimize() {
     log('Optimizing javascript, css, html in ' + getRunMode() + ' mode');
-    var assets = $.useref.assets({ searchPath: './' });
-    var cssFilter = $.filter('**/*.css');
-    var jsLibFilter = $.filter('**/' + config.optimized.lib);
-    var jsAppFilter = $.filter('**/' + config.optimized.app);
 
     return gulp
       .src(config.index)
       .pipe($.plumber())
-      .pipe(assets)
-      .pipe(cssFilter)
-      .pipe($.csso())
-      .pipe(cssFilter.restore())
-      .pipe(jsLibFilter)
-      .pipe($.if(canUglify, $.uglify()))
-      .pipe(jsLibFilter.restore())
-      .pipe(jsAppFilter)
-      .pipe($.ngAnnotate())
-      .pipe($.if(canUglify, $.uglify()))
-      .pipe(jsAppFilter.restore())
-      .pipe($.rev())
-      .pipe(assets.restore())
       .pipe($.useref())
-      .pipe($.revReplace())
-      .pipe(gulp.dest(config.dest))
-      .pipe($.rev.manifest())
+      .pipe(
+        $.if('**/' + config.optimized.app, $.if(canUglify, $.uglify())))
       .pipe(gulp.dest(config.dest));
   }
 
@@ -264,28 +277,22 @@ module.exports = function () {
     }
 
     log('Starting browser-sync on port ' + port);
+    // log('Watching files : \n' + config.watchFiles)
 
     if (isDev) {
-      // gulp.watch([config.less], ['styles'])
-      //   .on('change', changeEvent);
+      gulp.watch(config.watchFiles,
+        gulp.series(compileOnce, reloadBrowser))
+        .on('change', changeEvent);
     } else {
-      gulp.watch([
-        config.less,
-        config.js,
-        config.html],
-        gulp.series(optimize, browserSync.reload))
+      gulp.watch(config.watchFiles,
+        gulp.series(optimize, reloadBrowser))
         .on('change', changeEvent);
     }
 
     var options = {
       proxy: 'localhost:' + port,
       port: 3000,
-      files: isDev ? [
-        config.client + '**/*.js',
-        '!' + config.less,
-        config.temp + '**/*.css',
-        config.index
-      ] : [],
+      files: [],
       ghostMode: {
         clicks: true,
         location: false,
@@ -305,6 +312,11 @@ module.exports = function () {
     }
 
     browserSync(options);
+  }
+
+  function reloadBrowser(done) {
+    browserSync.reload();
+    done();
   }
 
 }

@@ -15,14 +15,11 @@ gulp.task('compile', tasks.compile);
 gulp.task('clean', tasks.clean);
 
 /**
- * serve-dev: it will serve the index.html from client folder
+ * serve: compile typescript and run browser
+ * @isDev?: true, it will serve index.html from clientapp location
+ * @isDev?: false, it will serve index.html from destination location
  */
-gulp.task('serve-dev', tasks.serveDev);
-
-/**
- * serve-dev: it will serve the index.html from destination folder
- */
-gulp.task('serve-build', tasks.serveBuild);
+gulp.task('serve', tasks.serve);
 
 /**
  * test: it run tests

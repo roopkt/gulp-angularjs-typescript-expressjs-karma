@@ -1,5 +1,5 @@
 module.exports = function (config) {
-  var gulpConfig = require('./build/build.config')();
+  var gulpConfig = require('./gulp.config')();
 
   config.set({
     client: {
@@ -9,7 +9,7 @@ module.exports = function (config) {
 
     // frameworks to use
     // some available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['jasmine','sinon'],
+    frameworks: ['jasmine', 'sinon'],
 
     // list of files / patterns to load in the browser
     files: gulpConfig.karma.files
@@ -29,7 +29,7 @@ module.exports = function (config) {
     // test results reporter to use
     // possible values: 'dots', 'progress', 'coverage'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['kjhtml','progress', 'coverage'],
+    reporters: ['kjhtml', 'progress', 'coverage'],
 
     coverageReporter: {
       dir: gulpConfig.karma.coverage.dir,

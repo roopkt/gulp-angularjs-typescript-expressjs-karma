@@ -1,23 +1,24 @@
 
 module.exports = function crateConfig() {
   const path = require('path');
-  var root = './src/';
-  var report = './report/';
-  var basePath = path.join(__dirname, 'src/');
-  var client = './src/client/';
-  var clientApp = './src/client/app/';
-  var dest = "./dist/";
-  var out = './out/';
-  var index = root + 'index.html';
-  var temp = "./.temp/";
-  var specRunnerFile = root + 'specs.html';
-  var server = './src/server/';
+  const workingDir = process.cwd();
+  var root = path.join(workingDir, 'src/');
+  var report = path.join(workingDir, 'report/');
+  var dest = path.join(workingDir, 'dist/');
+  var out = path.join(workingDir, 'out/');
+  var temp = path.join(workingDir, '.temp/');
+
+  var client = path.join(root, 'client/');
+  var clientApp = path.join(client, 'app/');
+  var index = path.join(root, 'index.html');
+  var specRunnerFile = path.join(root, 'specs.html');
+  var server = path.join(root, 'server/');
+
   var config = {
     allTests: [
       client + '**/*.tests.js',
       client + '**/*.spec.js'
     ],
-    basePath: basePath,
     browserReloadDelay: 1000,
     client: client,
     clientApp: clientApp,
@@ -28,6 +29,7 @@ module.exports = function crateConfig() {
       path.join(clientApp, '**/*.css'),
       index,
     ],
+    icon: path.join(__dirname, './gulp.png'),
     html: clientApp + '**/*.html',
     index: index,
     js: [
@@ -47,7 +49,7 @@ module.exports = function crateConfig() {
     server: server,
     serverIntegrationSpecs: [],
     specRunner: specRunnerFile,
-    shouldUseBasePath: false,
+    shouldUseroot: false,
     specHelpers: [client + 'test-helpers/*.js'],
     temp: temp,
     watchFiles: [

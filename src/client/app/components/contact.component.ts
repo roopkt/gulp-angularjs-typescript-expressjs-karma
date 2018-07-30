@@ -25,3 +25,6 @@ module MySample {
   }
   Module.directive('contact', () => new ContactDirective());
 }
+
+
+
