@@ -10,7 +10,7 @@ module.exports = function crateConfig() {
 
   var client = path.join(root, 'client/');
   var clientApp = path.join(client, 'app/');
-  var index = path.join(root, 'index.html');
+  var index = path.join(client, 'index.html');
   var specRunnerFile = path.join(root, 'specs.html');
   var server = path.join(root, 'server/');
 
