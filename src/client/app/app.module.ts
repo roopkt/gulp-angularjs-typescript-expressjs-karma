@@ -4,7 +4,7 @@ module MySample {
     $routeProvider
       .when('/contact',
         {
-          template: '<contact></contact>',
+          template: '<smp-contact></smp-contact>',
         });
   }]);
 }

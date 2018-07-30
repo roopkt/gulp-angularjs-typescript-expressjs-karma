@@ -19,7 +19,7 @@ module MySample {
   }
 
   Module.controller('contactController', ContactController);
-  
+
   export class ContactDirective {
     controllerAs: string;
     controller: string;
@@ -31,7 +31,7 @@ module MySample {
       this.templateUrl = './contact.component.html';
     }
   }
-  Module.directive('contact', () => new ContactDirective());
+  Module.directive('smpContact', () => new ContactDirective());
 }
 
 
