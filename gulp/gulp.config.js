@@ -7,10 +7,12 @@ module.exports = function crateConfig() {
   const dest = path.join(workingDir, 'dist/');
   const out = path.join(workingDir, 'out/');
   const temp = path.join(workingDir, '.temp/');
+  const nodeDir = path.join(workingDir, 'node_modules/');
   const client = path.join(root, 'client/');
   const clientApp = path.join(client, 'app/');
   const index = path.join(client, 'index.html');
   const server = path.join(root, 'server/');
+
   const config = {
     allTs: [
       root + '**/*.ts',
@@ -43,14 +45,14 @@ module.exports = function crateConfig() {
 
     ],
     localModules: [
-      
+
     ],
     out: out,
     optimized: {
       app: 'app.js',
       lib: 'lib.js'
     },
-    port: 2121,
+    port: 2321,
     root: root,
     server: server,
     serverIntegrationSpecs: [],

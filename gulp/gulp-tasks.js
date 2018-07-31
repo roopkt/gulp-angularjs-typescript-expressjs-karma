@@ -315,29 +315,35 @@ function gulpTasks() {
   }
 
   function watchWhileServeBuild() {
+    const files = [
+      config.localModules,
+      config.testTs,
+      config.less,
+      config.ts,
+      config.html,
+      config.index
+    ];
     gulp.watch(
-      [
-        config.less,
-        config.ts,
-        config.testTs,
-        config.html,
-        config.index
-      ],
+      files,
       gulp.series(optimize, reloadBrowser))
       .on('change', changeEvent);
+    log('watching files while serving: ' + JSON.stringify(files));
   }
 
   function watchWhileServeDev() {
+    const files = [
+      config.localModules,
+      config.less,
+      config.ts,
+      config.html,
+      config.index
+    ];
+
     gulp.watch(
-      [
-        config.less,
-        config.ts,
-        config.html,
-        config.index
-      ]
-      ,
+      files,
       gulp.series(compileOnce, reloadBrowser))
       .on('change', changeEvent);
+    log('watching files while serving: ' + JSON.stringify(files));
   }
 
   function startServeDev() {
