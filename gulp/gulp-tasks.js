@@ -10,50 +10,72 @@ var gulp = require('gulp'),
   path = require('path'),
   _ = require('lodash');
 
+const workingDir = process.cwd();
 
-var workingDir = process.cwd();
+const devOptions = {
+  sourcemaps: true,
+  report: true,
+  uglify: false,
+  singlerun: false,
+  dev: true,
+  port: config.port,
+  tsconfig: 'tsconfig.json',
+  notify: true
+};
 
-module.exports = function () {
+const prodOptions = {
+  sourcemaps: false,
+  report: true,
+  uglify: true,
+  singlerun: true,
+  dev: false,
+  prod: true,
+  port: config.port,
+  tsconfig: 'tsconfig.prod.json',
+  notify: false
+}
+
+function gulpTasks() {
+  let options;
   //PROPERTIES
-  let isDebug = args.debug;
+  let isDev = args.dev;
   const isProd = args.prod;
+
   if (!isProd) {
-    isDebug = true;
+    isDev = true;
   }
-  const canCreateSourceMap = isDebug || args.sourcemaps;
-  const canCreateReport = isDebug || args.report;
-  const canUglify = isProd || args.uglify;
-  const canTestAlways = args.watch || args.sr;
-  const canServeDev = args.dev ? true : false;
-  var port = process.env.PORT || config.port;
-  const tsconfig = args.tsconfig || 'tsconfig.json';
+
+  if (isDev) {
+    options = _.assign(devOptions, args);
+  } else {
+    options = _.assign(prodOptions, args);
+  }
 
   //FUNCTIONS
   const startCompileOnce = (done) => compileOnce(done);
   const autoCompile = () => gulp.watch(config.watchFiles, startCompileOnce);
-  var cleanCode = gulp.series(cleanDist);
   const compile = args.watch ? autoCompile : compileOnce;
   const startTestOnce = (done) => startTests(true /* singleRun */, done);
   const startTestAlways = (done) => {
     gulp.watch(config.watchFilesForTest, startCompileOnce);
-    startTests(false/* singleRun */, done)
+    startTests(false/* singleRun */, done);
   };
   const testOnce = gulp.series(compileOnce, startTestOnce);
   const testAlways = gulp.series(compileOnce, startTestAlways);
-  const test = canTestAlways ? testAlways : testOnce;
-  const optimize = gulp.series(testOnce, startOptimize)
-  const build = gulp.series(optimize, startBuild);
+  const test = options.singlerun ? testOnce : testAlways;
+  const optimize = gulp.series(testOnce, startOptimize);
+  const build = gulp.series(cleanCode, gulp.parallel(copyPackageJson, gulp.series(optimize, startBuild)));
   const startServeDev = () => startServe(true/* isDev */);
   const startServeBuild = () => startServe(false/* isDev */);
   const serveDev = gulp.series(compileOnce, startServeDev);
   const serveBuild = gulp.series(compileOnce, optimize, startServeBuild);
-  const serve = canServeDev ? serveDev : serveBuild;
+  const serve = isDev ? serveDev : serveBuild;
 
   //TASKS
   var tasks = {
     build: build,
     compile: compile,
-    clean: cleanCode,
+    cleanCode: cleanCode,
     serve: serve,
     serveDev: serveDev,
     serveBuild: serveBuild,
@@ -63,8 +85,12 @@ module.exports = function () {
 
   return tasks;
 
-  function cleanDist(done) {
-    clean(config.dest + '**/*.{html,css,js}', done);
+  function cleanCode(done) {
+    const files = [].concat(
+      config.dest + '**/*.*',
+      config.temp + '**/*.*',
+    )
+    clean(files, done);
   }
 
   function clean(path, done) {
@@ -84,18 +110,18 @@ module.exports = function () {
   function compileOnce(done) {
     log('Compiling Typescripts to JS in ' +
       getRunMode() + ' mode');
-    log('Compiling Typescripts using config: ' + tsconfig);
-    if (canCreateSourceMap) {
+    log('Compiling Typescripts using config: ' + options.tsconfig);
+    if (options.sourcemaps) {
       log('Creating sourcemaps');
     }
 
     var reporter;
 
-    const tsProject = $.typescript.createProject(tsconfig, {
+    const tsProject = $.typescript.createProject(options.tsconfig, {
       typescript: require('typescript')
     });
 
-    if (canCreateReport) {
+    if (options.report) {
       reporter = $.typescript.reporter.fullReporter();
     }
 
@@ -110,12 +136,12 @@ module.exports = function () {
 
     return tsProject
       .src()
-      .pipe($.if(canCreateSourceMap, $.sourcemaps.init()))
+      .pipe($.if(options.sourcemaps, $.sourcemaps.init()))
       .pipe($.plumber())
-      .pipe($.ifElse(canCreateReport, tsProject.bind(tsProject, reporter), tsProject))
+      .pipe($.ifElse(options.report, tsProject.bind(tsProject, reporter), tsProject))
       .js
-      .pipe($.if(canCreateSourceMap, $.sourcemaps.mapSources()))
-      .pipe($.if(canCreateSourceMap, $.sourcemaps.write()))
+      .pipe($.if(options.sourcemaps, $.sourcemaps.mapSources()))
+      .pipe($.if(options.sourcemaps, $.sourcemaps.write()))
       .pipe($.ngAnnotate())
       .pipe(embedTemplates(embedOptions))
       .pipe(gulp.dest(config.root))
@@ -123,8 +149,15 @@ module.exports = function () {
       .on('error', (e) => done && done(e));
   }
 
+  function copyPackageJson(done) {
+    gulp
+      .src(config.appPackageJson)
+      .pipe(gulp.dest(config.dest));
+    done();
+  }
+
   function getRunMode() {
-    return isDebug ? 'debug' : 'prod';
+    return isDev ? 'dev' : 'prod';
   }
 
   function inject(done) {
@@ -161,7 +194,7 @@ module.exports = function () {
   }
 
   function startBuild(done) {
-    log('Building everything');
+    log('Building everything with options: ' + JSON.stringify(options));
     const subTitle = 'Deployed to the ' + config.dest + ' folder.';
     var msg = {
       title: 'gulp build',
@@ -169,7 +202,9 @@ module.exports = function () {
     };
     del(config.temp);
     log(msg);
-    notify(msg);
+    if (options.notify) {
+      notify(msg);
+    }
     done();
   }
 
@@ -181,7 +216,7 @@ module.exports = function () {
       .pipe($.plumber())
       .pipe($.useref())
       .pipe(
-        $.if('**/' + config.optimized.app, $.if(canUglify, $.uglify())))
+        $.if('**/' + config.optimized.app, $.if(options.uglify, $.uglify())))
       .pipe(gulp.dest(config.dest));
   }
 
@@ -194,7 +229,7 @@ module.exports = function () {
       .src(allSrc)
       .pipe($.concat(config.output.vendor))
       .pipe($.plumber())
-      .pipe($.if(canUglify, $.uglify()))
+      .pipe($.if(options.uglify, $.uglify()))
       .pipe(gulp.dest(config.dest))
       .on('end', () => done())
       .on('error', (e) => done(e));
@@ -248,8 +283,8 @@ module.exports = function () {
       script: config.nodeServer,
       delayTime: 1,
       env: {
-        'PORT': port,
-        'NODE_ENV': isDev ? 'dev' : 'build'
+        'PORT': options.port,
+        'NODE_ENV': isDev ? 'dev' : 'prod'
       },
       watch: [config.server]
     };
@@ -280,7 +315,7 @@ module.exports = function () {
       return;
     }
 
-    log('Starting browser-sync on port ' + port);
+    log('Starting browser-sync on port ' + options.port);
     // log('Watching files : \n' + config.watchFiles)
 
     if (isDev) {
@@ -294,7 +329,7 @@ module.exports = function () {
     }
 
     var options = {
-      proxy: 'localhost:' + port,
+      proxy: 'localhost:' + options.port,
       port: 3000,
       files: [],
       ghostMode: {
@@ -325,4 +360,4 @@ module.exports = function () {
 
 }
 
-
+module.exports = gulpTasks;

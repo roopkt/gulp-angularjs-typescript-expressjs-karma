@@ -1,4 +1,8 @@
 module MySample {
+  export interface ContactDetails {
+    email: string;
+    message: String;
+  }
   export interface IContactScope extends ng.IScope {
     name: string;
     onSubmit: '&'
@@ -13,11 +17,11 @@ module MySample {
       $scope.name = "Rupesh";
     }
 
-    submit() {
-      this.$scope.onSubmit(this.$scope.contactDetails);
+    submit(contactDetails: ContactDetails) {
+      this.$scope.onSubmit(contactDetails);
     }
   }
-
+ 
   Module.controller('contactController', ContactController);
 
   export class ContactDirective {

@@ -53,7 +53,6 @@ module.exports = function crateConfig() {
     specHelpers: [client + 'test-helpers/*.js'],
     temp: temp,
     watchFiles: [
-      '!' + clientApp + "**/*spec.ts",
       clientApp + "**/*.ts",
       clientApp + "**/*.html",
       index
@@ -63,7 +62,8 @@ module.exports = function crateConfig() {
       clientApp + "**/*.ts",
       clientApp + "**/*.html",
       index
-    ]
+    ],
+    appPackageJson: path.join(clientApp, 'package.json')
   };
 
   config.karma = getKarmaOptions();
