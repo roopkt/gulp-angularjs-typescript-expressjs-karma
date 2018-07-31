@@ -11,18 +11,6 @@ module.exports = function crateConfig() {
   const clientApp = path.join(client, 'app/');
   const index = path.join(client, 'index.html');
   const server = path.join(root, 'server/');
-  //   const ts = [
-  //     clientApp + "**/*.ts",
-  //     '!' + clientApp + "**/*.ts"
-  //   ];
-  //   const watchFiles = [].concat(
-  // ts,html
-  //   );
-  //     clientApp + "**/*.ts",
-  //     '!' + clientApp + "**/*.ts",
-  //     clientApp + "**/*.html",
-  //     index
-  //   ];
   const config = {
     allTs: [
       root + '**/*.ts',
@@ -51,6 +39,12 @@ module.exports = function crateConfig() {
     index: index,
     less: [],
     nodeServer: './src/server/app.js',
+    nodeModules: [
+
+    ],
+    localModules: [
+      
+    ],
     out: out,
     optimized: {
       app: 'app.js',
@@ -73,6 +67,7 @@ module.exports = function crateConfig() {
   };
 
   config.karma = getKarmaOptions();
+
   return config;
 
   function getKarmaOptions() {
