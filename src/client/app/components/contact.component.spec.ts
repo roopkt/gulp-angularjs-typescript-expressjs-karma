@@ -14,7 +14,7 @@ module MySample {
           scope = $rootScope.$new();
           controller = $controller('contactController', {
             $scope: scope,
-          });
+          }); 
         });
     });
 

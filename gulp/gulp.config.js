@@ -2,41 +2,53 @@
 module.exports = function crateConfig() {
   const path = require('path');
   const workingDir = process.cwd();
-  var root = path.join(workingDir, 'src/');
-  var report = path.join(workingDir, 'report/');
-  var dest = path.join(workingDir, 'dist/');
-  var out = path.join(workingDir, 'out/');
-  var temp = path.join(workingDir, '.temp/');
-
-  var client = path.join(root, 'client/');
-  var clientApp = path.join(client, 'app/');
-  var index = path.join(client, 'index.html');
-
-  var server = path.join(root, 'server/');
-
-  var config = {
-    allTests: [
-      client + '**/*.tests.js',
-      client + '**/*.spec.js'
+  const root = path.join(workingDir, 'src/');
+  const report = path.join(workingDir, 'report/');
+  const dest = path.join(workingDir, 'dist/');
+  const out = path.join(workingDir, 'out/');
+  const temp = path.join(workingDir, '.temp/');
+  const client = path.join(root, 'client/');
+  const clientApp = path.join(client, 'app/');
+  const index = path.join(client, 'index.html');
+  const server = path.join(root, 'server/');
+  //   const ts = [
+  //     clientApp + "**/*.ts",
+  //     '!' + clientApp + "**/*.ts"
+  //   ];
+  //   const watchFiles = [].concat(
+  // ts,html
+  //   );
+  //     clientApp + "**/*.ts",
+  //     '!' + clientApp + "**/*.ts",
+  //     clientApp + "**/*.html",
+  //     index
+  //   ];
+  const config = {
+    allTs: [
+      root + '**/*.ts',
+      './*.ts'
     ],
+
+    /**
+     *  packagejson which will be copied in destination folder
+     */
+    appPackageJson: path.join(clientApp, 'package.json'),
+
+    /**
+     *  time to load browser sync
+    */
     browserReloadDelay: 1000,
+
     client: client,
     clientApp: clientApp,
+
+    /**
+     * folder location where build artifacts will go
+     */
     dest: dest,
-    filesToWatch: [
-      path.join(clientApp, '**/*.js'),
-      path.join(clientApp, '**/*.html'),
-      path.join(clientApp, '**/*.css'),
-      index,
-    ],
-    icon: path.join(__dirname, './gulp.png'),
     html: clientApp + '**/*.html',
+    icon: path.join(__dirname, './gulp.png'),
     index: index,
-    js: [
-      clientApp + '**/*.module.js',
-      clientApp + '**/*.js',
-      '!' + clientApp + '**/*.spec.js'
-    ],
     less: [],
     nodeServer: './src/server/app.js',
     out: out,
@@ -44,26 +56,20 @@ module.exports = function crateConfig() {
       app: 'app.js',
       lib: 'lib.js'
     },
-    port: 2333,
+    port: 2121,
     root: root,
     server: server,
     serverIntegrationSpecs: [],
     specRunner: '',
-    shouldUseroot: false,
     specHelpers: [client + 'test-helpers/*.js'],
     temp: temp,
-    watchFiles: [
+    ts: [
       clientApp + "**/*.ts",
-      clientApp + "**/*.html",
-      index
+      '!' + clientApp + "**/*.spec.ts"
     ],
-    watchFilesForTest: [
-      clientApp + "**/*spec.ts",
-      clientApp + "**/*.ts",
-      clientApp + "**/*.html",
-      index
-    ],
-    appPackageJson: path.join(clientApp, 'package.json')
+    testTs: [
+      clientApp + "**/*.spec.ts",
+    ]
   };
 
   config.karma = getKarmaOptions();

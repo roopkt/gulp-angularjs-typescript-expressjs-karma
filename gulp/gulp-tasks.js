@@ -7,12 +7,10 @@ var gulp = require('gulp'),
   Minimize = require('minimize'),
   minimize = new Minimize(),
   $ = require('gulp-load-plugins')({ lazy: true }),
-  path = require('path'),
   _ = require('lodash');
 
-const workingDir = process.cwd();
 
-const devOptions = {
+const devConfig = {
   sourcemaps: true,
   report: true,
   uglify: false,
@@ -23,7 +21,7 @@ const devOptions = {
   notify: true
 };
 
-const prodOptions = {
+const prodConfig = {
   sourcemaps: false,
   report: true,
   uglify: true,
@@ -36,51 +34,34 @@ const prodOptions = {
 }
 
 function gulpTasks() {
-  let options;
+  let taskConfig;
   //PROPERTIES
   let isDev = args.dev;
   const isProd = args.prod;
-
+  log('args' + JSON.stringify(args));
   if (!isProd) {
     isDev = true;
   }
 
   if (isDev) {
-    options = _.assign(devOptions, args);
+    taskConfig = _.assign(devConfig, args);
   } else {
-    options = _.assign(prodOptions, args);
+    taskConfig = _.assign(prodConfig, args);
   }
 
   //FUNCTIONS
-  const startCompileOnce = (done) => compileOnce(done);
-  const autoCompile = () => gulp.watch(config.watchFiles, startCompileOnce);
-  const compile = args.watch ? autoCompile : compileOnce;
-  const startTestOnce = (done) => startTests(true /* singleRun */, done);
-  const startTestAlways = (done) => {
-    gulp.watch(config.watchFilesForTest, startCompileOnce);
-    startTests(false/* singleRun */, done);
-  };
   const testOnce = gulp.series(compileOnce, startTestOnce);
-  const testAlways = gulp.series(compileOnce, startTestAlways);
-  const test = options.singlerun ? testOnce : testAlways;
+  const testAlways = gulp.series(compileOnce, autoTest);
   const optimize = gulp.series(testOnce, startOptimize);
-  const build = gulp.series(cleanCode, gulp.parallel(copyPackageJson, gulp.series(optimize, startBuild)));
-  const startServeDev = () => startServe(true/* isDev */);
-  const startServeBuild = () => startServe(false/* isDev */);
   const serveDev = gulp.series(compileOnce, startServeDev);
   const serveBuild = gulp.series(compileOnce, optimize, startServeBuild);
-  const serve = isDev ? serveDev : serveBuild;
 
   //TASKS
   var tasks = {
-    build: build,
-    compile: compile,
+    build: gulp.series(cleanCode, gulp.parallel(copyPackageJson, gulp.series(optimize, startBuild))),
     cleanCode: cleanCode,
-    serve: serve,
-    serveDev: serveDev,
-    serveBuild: serveBuild,
-    test: test,
-    optimize: optimize,
+    serve: isDev ? serveDev : serveBuild,
+    test: taskConfig.singlerun ? testOnce : testAlways
   };
 
   return tasks;
@@ -110,18 +91,18 @@ function gulpTasks() {
   function compileOnce(done) {
     log('Compiling Typescripts to JS in ' +
       getRunMode() + ' mode');
-    log('Compiling Typescripts using config: ' + options.tsconfig);
-    if (options.sourcemaps) {
+    log('Compiling Typescripts using config: ' + taskConfig.tsconfig);
+    if (taskConfig.sourcemaps) {
       log('Creating sourcemaps');
     }
 
     var reporter;
 
-    const tsProject = $.typescript.createProject(options.tsconfig, {
+    const tsProject = $.typescript.createProject(taskConfig.tsconfig, {
       typescript: require('typescript')
     });
 
-    if (options.report) {
+    if (taskConfig.report) {
       reporter = $.typescript.reporter.fullReporter();
     }
 
@@ -136,12 +117,12 @@ function gulpTasks() {
 
     return tsProject
       .src()
-      .pipe($.if(options.sourcemaps, $.sourcemaps.init()))
+      .pipe($.if(taskConfig.sourcemaps, $.sourcemaps.init()))
       .pipe($.plumber())
-      .pipe($.ifElse(options.report, tsProject.bind(tsProject, reporter), tsProject))
+      .pipe($.ifElse(taskConfig.report, tsProject.bind(tsProject, reporter), tsProject))
       .js
-      .pipe($.if(options.sourcemaps, $.sourcemaps.mapSources()))
-      .pipe($.if(options.sourcemaps, $.sourcemaps.write()))
+      .pipe($.if(taskConfig.sourcemaps, $.sourcemaps.mapSources()))
+      .pipe($.if(taskConfig.sourcemaps, $.sourcemaps.write()))
       .pipe($.ngAnnotate())
       .pipe(embedTemplates(embedOptions))
       .pipe(gulp.dest(config.root))
@@ -160,16 +141,6 @@ function gulpTasks() {
     return isDev ? 'dev' : 'prod';
   }
 
-  function inject(done) {
-    gulp
-      .src(config.index)
-      .pipe($.inject(gulp.src(config.getAllJs(), { read: false }), { name: 'inject:client' }))
-  }
-
-  function addRoot(sourcePath) {
-    return path.join(workingDir, '/', config.root, sourcePath);
-  }
-
   function log(msg) {
     if (typeof (msg) === 'object') {
       for (var item in msg) {
@@ -182,19 +153,23 @@ function gulpTasks() {
     }
   }
 
+  function logConfig() {
+    log('===taskConfig===\n' + JSON.stringify(taskConfig));
+  }
+
   function notify(options) {
     var notifier = require('node-notifier');
     var notifyOptions = {
       sound: 'Bottle',
-      contentImage: config.icon,
-      icon: config.icon
+      contentImage: options.icon,
+      icon: options.icon
     };
     _.assign(notifyOptions, options);
     notifier.notify(notifyOptions);
   }
 
   function startBuild(done) {
-    log('Building everything with options: ' + JSON.stringify(options));
+    log('Building everything with options: ' + JSON.stringify(taskConfig));
     const subTitle = 'Deployed to the ' + config.dest + ' folder.';
     var msg = {
       title: 'gulp build',
@@ -202,7 +177,7 @@ function gulpTasks() {
     };
     del(config.temp);
     log(msg);
-    if (options.notify) {
+    if (taskConfig.notify) {
       notify(msg);
     }
     done();
@@ -216,23 +191,8 @@ function gulpTasks() {
       .pipe($.plumber())
       .pipe($.useref())
       .pipe(
-        $.if('**/' + config.optimized.app, $.if(options.uglify, $.uglify())))
+        $.if('**/' + config.optimized.app, $.if(taskConfig.uglify, $.uglify())))
       .pipe(gulp.dest(config.dest));
-  }
-
-  function optimizeVendor(done) {
-    log('Optimizing vendor code in ' + getRunMode() + ' mode');
-
-    const allSrc = config.libs;
-
-    return gulp
-      .src(allSrc)
-      .pipe($.concat(config.output.vendor))
-      .pipe($.plumber())
-      .pipe($.if(options.uglify, $.uglify()))
-      .pipe(gulp.dest(config.dest))
-      .on('end', () => done())
-      .on('error', (e) => done(e));
   }
 
   function startTests(singleRun, done) {
@@ -283,7 +243,7 @@ function gulpTasks() {
       script: config.nodeServer,
       delayTime: 1,
       env: {
-        'PORT': options.port,
+        'PORT': taskConfig.port,
         'NODE_ENV': isDev ? 'dev' : 'prod'
       },
       watch: [config.server]
@@ -315,21 +275,17 @@ function gulpTasks() {
       return;
     }
 
-    log('Starting browser-sync on port ' + options.port);
+    log('Starting browser-sync on port ' + taskConfig.port);
     // log('Watching files : \n' + config.watchFiles)
 
     if (isDev) {
-      gulp.watch(config.watchFiles,
-        gulp.series(compileOnce, reloadBrowser))
-        .on('change', changeEvent);
+      watchWhileServeDev();
     } else {
-      gulp.watch(config.watchFiles,
-        gulp.series(optimize, reloadBrowser))
-        .on('change', changeEvent);
+      watchWhileServeBuild();
     }
 
-    var options = {
-      proxy: 'localhost:' + options.port,
+    var browserSyncOptions = {
+      proxy: 'localhost:' + taskConfig.port,
       port: 3000,
       files: [],
       ghostMode: {
@@ -347,10 +303,10 @@ function gulpTasks() {
     };
 
     if (specRunner) {
-      options.startPath = config.specRunnerFile;
+      browserSyncOptions.startPath = config.specRunnerFile;
     }
 
-    browserSync(options);
+    browserSync(browserSyncOptions);
   }
 
   function reloadBrowser(done) {
@@ -358,6 +314,55 @@ function gulpTasks() {
     done();
   }
 
+  function watchWhileServeBuild() {
+    gulp.watch(
+      [
+        config.less,
+        config.ts,
+        config.testTs,
+        config.html,
+        config.index
+      ],
+      gulp.series(optimize, reloadBrowser))
+      .on('change', changeEvent);
+  }
+
+  function watchWhileServeDev() {
+    gulp.watch(
+      [
+        config.less,
+        config.ts,
+        config.html,
+        config.index
+      ]
+      ,
+      gulp.series(compileOnce, reloadBrowser))
+      .on('change', changeEvent);
+  }
+
+  function startServeDev() {
+    logConfig();
+    startServe(true/* isDev */);
+  }
+
+  function startServeBuild() {
+    startServe(false/* isDev */);
+  }
+
+  function startCompileOnce(done) {
+    compileOnce(done);
+  }
+
+  function startTestOnce(done) {
+    logConfig();
+    startTests(true /* singleRun */, done);
+  }
+
+  function autoTest(done) {
+    logConfig();
+    gulp.watch([config.index, config.html, config.ts, config.testTs], startCompileOnce);
+    startTests(false/* singleRun */, done);
+  };
 }
 
 module.exports = gulpTasks;

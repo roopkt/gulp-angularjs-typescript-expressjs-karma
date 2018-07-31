@@ -36,8 +36,8 @@ app.get('/ping', function (req, res, next) {
 });
 
 switch (environment) {
-  case 'build':
-    console.log('** BUILD **');
+  case 'prod':
+    console.log('** PROD **');
     app.use(express.static('./dist/'));
     app.use('/*', express.static('./dist/index.html'));
     break;
