@@ -44,8 +44,10 @@ function gulpTasks() {
   }
 
   if (isDev) {
+    process.env.NODE_ENV = 'dev';
     taskConfig = _.assign(devConfig, args);
   } else {
+    process.env.NODE_ENV = 'prod';
     taskConfig = _.assign(prodConfig, args);
   }
 
@@ -60,7 +62,13 @@ function gulpTasks() {
 
   //TASKS
   var tasks = {
-    build: gulp.series(cleanCode, gulp.parallel(copyPackageJson, gulp.series(optimize, startBuild))),
+    build: gulp.series(cleanCode, gulp.parallel(
+      copyPackageJson,
+      gulp.series(
+        styles,
+        optimize,
+        startBuild)
+    )),
     cleanCode: cleanCode,
     serve: isDev ? serveDev : serveBuild,
     styles: styles,
@@ -197,7 +205,6 @@ function gulpTasks() {
     };
 
     log(msg);
-    del(config.temp);
     if (taskConfig.notify) {
       notify(msg);
     }
@@ -341,8 +348,7 @@ function gulpTasks() {
       config.testTs,
       config.less,
       config.ts,
-      config.html,
-      config.index
+      config.html
     ];
     gulp.watch(
       files,
