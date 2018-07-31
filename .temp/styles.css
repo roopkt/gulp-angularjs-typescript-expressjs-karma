@@ -1,0 +1,10 @@
+.message {
+  background-color: #2e2f0a;
+  color: white;
+  font-weight: bold;
+  font-size: 150%;
+}
+.contact-logo {
+  height: 50px;
+  width: 50px;
+}

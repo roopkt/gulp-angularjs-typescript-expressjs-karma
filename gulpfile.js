@@ -14,6 +14,7 @@ gulp.task('clean-code', tasks.cleanCode);
  * @isDev?: false, it will serve index.html from destination location
  */
 gulp.task('serve', tasks.serve);
+gulp.task('styles', tasks.styles);
 
 /**
  * test: it run tests

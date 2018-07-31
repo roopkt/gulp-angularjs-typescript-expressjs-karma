@@ -55,12 +55,15 @@ function gulpTasks() {
   const optimize = gulp.series(testOnce, startOptimize);
   const serveDev = gulp.series(compileOnce, startServeDev);
   const serveBuild = gulp.series(compileOnce, optimize, startServeBuild);
+  const styles = gulp.series(cleanStyles, compileLess);
+
 
   //TASKS
   var tasks = {
     build: gulp.series(cleanCode, gulp.parallel(copyPackageJson, gulp.series(optimize, startBuild))),
     cleanCode: cleanCode,
     serve: isDev ? serveDev : serveBuild,
+    styles: styles,
     test: taskConfig.singlerun ? testOnce : testAlways
   };
 
@@ -68,8 +71,7 @@ function gulpTasks() {
 
   function cleanCode(done) {
     const files = [].concat(
-      config.dest + '**/*.*',
-      config.temp + '**/*.*',
+      config.dest + '**/*.*'
     )
     clean(files, done);
   }
@@ -130,7 +132,25 @@ function gulpTasks() {
       .on('error', (e) => done && done(e));
   }
 
+  function compileLess(done) {
+    log('Compiling Less --> CSS');
+
+    return gulp
+      .src(config.less)
+      .pipe($.plumber())
+      .pipe($.less())
+      .pipe($.autoprefixer({ browsers: ['last 2 version', '> 5%'] }))
+      .pipe(gulp.dest(config.temp))
+      .on('end', () => done());
+  }
+
+  function cleanStyles(done) {
+    clean(config.temp + '**/*.css', done);
+  }
+
   function copyPackageJson(done) {
+    log('Copying package.json');
+
     gulp
       .src(config.appPackageJson)
       .pipe(gulp.dest(config.dest));
@@ -175,8 +195,9 @@ function gulpTasks() {
       title: 'gulp build',
       message: subTitle + '\n Running `gulp serve-build`',
     };
-    del(config.temp);
+
     log(msg);
+    del(config.temp);
     if (taskConfig.notify) {
       notify(msg);
     }
@@ -343,6 +364,13 @@ function gulpTasks() {
       files,
       gulp.series(compileOnce, reloadBrowser))
       .on('change', changeEvent);
+
+    gulp.watch(
+      [config.less], gulp.series(
+        styles, reloadBrowser
+      )
+    );
+
     log('watching files while serving: ' + JSON.stringify(files));
   }
 

@@ -28,7 +28,7 @@ module.exports = function crateConfig() {
      *  time to load browser sync
     */
     browserReloadDelay: 1000,
-
+    css: temp + 'styles.css',
     client: client,
     clientApp: clientApp,
 
@@ -39,7 +39,9 @@ module.exports = function crateConfig() {
     html: clientApp + '**/*.html',
     icon: path.join(__dirname, './gulp.png'),
     index: index,
-    less: [],
+    less: [
+      client + 'styles/styles.less'
+    ],
     nodeServer: './src/server/app.js',
     nodeModules: [
 
@@ -52,7 +54,7 @@ module.exports = function crateConfig() {
       app: 'app.js',
       lib: 'lib.js'
     },
-    port: 2321,
+    port: 2122,
     root: root,
     server: server,
     serverIntegrationSpecs: [],
