@@ -1,4 +1,3 @@
-/// <reference path="../_references.ts"/>
 module MySample {
 
   describe('contactcomponent', () => {
@@ -14,7 +13,7 @@ module MySample {
           scope = $rootScope.$new();
           controller = $controller('contactController', {
             $scope: scope,
-          }); 
+          });
         });
     });
 
@@ -25,10 +24,10 @@ module MySample {
 
       it('On Submit should invoke onSubmit callback', () => {
 
-        const contactDetails = {
+        const contactDetails: ContactDetails = {
           "email": "roopkt@gmail.com",
           "message": "Hi,\nPlease call me.",
-        } as ContactDetails;
+        };
 
         scope.onSubmit = () => { };
 

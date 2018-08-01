@@ -77,6 +77,7 @@ module.exports = function crateConfig() {
   function getKarmaOptions() {
     var options = {
       files: [].concat(
+        clientApp + '_references.ts',
         config.specHelpers,
         workingDir + '/lib/angular/angular.js',
         workingDir + '/lib/angular/angular-route.js',
