@@ -63,3 +63,5 @@ typings/
 .next
 
 src/client/app/**/*.js
+.temp
+temp

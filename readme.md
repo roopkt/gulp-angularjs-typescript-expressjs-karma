@@ -23,5 +23,5 @@ Install all npm packages by running `npm i`
 
 * To Start Testing run  `npm test`
 
-* To Build run `npm run rbuild`
+* To Build run `npm run build`
 
