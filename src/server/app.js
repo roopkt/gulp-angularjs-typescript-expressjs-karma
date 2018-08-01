@@ -11,6 +11,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var port = process.env.PORT || 2333;
 var routes;
+var thirdPartyAssets = ['./node_modules/iam/assets'];
 
 var environment = process.env.NODE_ENV;
 
@@ -47,6 +48,10 @@ switch (environment) {
     app.use(express.static('./'));
     app.use(express.static('./tmp'));
     app.use('/*', express.static('./src/client/index.html'));
+    app.use('/assets', express.static('./src/client/assets'));
+    thirdPartyAssets.forEach(function (a) {
+      app.use('/assets', express.static(a));
+    });
     break;
 }
 
