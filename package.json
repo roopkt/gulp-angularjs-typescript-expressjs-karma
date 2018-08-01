@@ -12,7 +12,7 @@
     "serve": "gulp serve --dev",
     "serve:dist": "gulp serve --prod",
     "linked:in": "npm link my-sample-module",
-    "serve:link": "run-s linked:in serve:dev"
+    "serve:link": "run-s linked:in serve"
   },
   "keywords": [],
   "author": "",

@@ -1,12 +1,68 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "type": "npm",
-            "script": "build",
-            "problemMatcher": []
-        }
-    ]
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  /**
+      "start": "npm run serve",
+    "test": "npm run test:sr -- --watch",
+    "build": "gulp build --tsconfig tsconfig.prod.json",
+    "build:prod": "gulp build --tsconfig tsconfig.prod.json --prod",
+    "test:sr": "gulp test --tsconfig tsconfig.test.json",
+    "serve": "gulp serve --dev",
+    "serve:dist": "gulp serve --prod",
+    "linked:in": "npm link my-sample-module",
+    "serve:link": "run-s linked:in serve"
+    */
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "start",
+      "problemMatcher": []
+    },
+    {
+      "type": "npm",
+      "script": "test",
+      "problemMatcher": []
+    },
+    {
+      "type": "gulp",
+      "task": "build",
+      "problemMatcher": []
+    },
+    {
+      "type": "gulp",
+      "task": "build:prod",
+      "problemMatcher": []
+    },
+    {
+      "type": "gulp",
+      "task": "clean-code",
+      "problemMatcher": []
+    },
+    {
+      "type": "gulp",
+      "task": "test:sr",
+      "problemMatcher": []
+    },
+    {
+      "type": "gulp",
+      "task": "serve",
+      "problemMatcher": []
+    },
+    {
+      "type": "gulp",
+      "task": "serve:dist",
+      "problemMatcher": []
+    },
+    {
+      "type": "npm",
+      "script": "serve:link",
+      "problemMatcher": []
+    }
+    {
+      "type": "npm",
+      "script": "linked:in",
+      "problemMatcher": []
+    }
+  ]
 }
