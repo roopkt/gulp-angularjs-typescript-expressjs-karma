@@ -4,13 +4,13 @@
   "description": "a sample project showing capability for running angularjs app with gulp, expressjs and karma",
   "scripts": {
     "gulp": "gulp",
-    "start": "npm run serve:dev",
+    "start": "npm run serve",
     "test": "npm run test:sr -- --watch",
     "build": "gulp build --tsconfig tsconfig.prod.json",
     "build:prod": "gulp build --tsconfig tsconfig.prod.json --prod",
     "test:sr": "gulp test --tsconfig tsconfig.test.json",
-    "serve:build": "gulp serve --prod",
-    "serve:dev": "gulp serve --dev",
+    "serve": "gulp serve --dev",
+    "serve:dist": "gulp serve --prod",
     "linked:in": "npm link my-sample-module",
     "serve:link": "run-s linked:in serve:dev"
   },

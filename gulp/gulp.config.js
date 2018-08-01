@@ -56,19 +56,18 @@ module.exports = function crateConfig() {
     assets: {
       imagesOutput: path.join(dest, 'assets/images/'),
       fontsOutput: path.join(dest, 'assets/fonts/'),
-      thirdParty: {
-        images: [path.join(nodeDir, 'iam/assets/images/**/*.*'), path.join(nodeDir, 'iam1/assets/images/**/*.*')
-        ]
-        ,
-        fonts: [path.join(nodeDir, 'iam/assets/fonts/**/*.*'), path.join(nodeDir, 'iam1/assets/fonts/**/*.*')
-        ]
-      },
-      local: {
-        images: [path.join(imagesDir, '**/*.*')],
-        fonts: [path.join(fontsDir, '**/*.*')],
-      }
+      images: [
+        path.join(imagesDir, '**/*.*'),
+        path.join(nodeDir, 'iam/assets/images/**/*.*'),
+        path.join(nodeDir, 'iam1/assets/images/**/*.*')
+      ],
+      fonts: [
+        path.join(fontsDir, '**/*.*'),
+        path.join(nodeDir, 'iam/assets/fonts/**/*.*'),
+        path.join(nodeDir, 'iam1/assets/fonts/**/*.*')
+      ],
     },
-    port: 2122,
+    port: 2410,
     root: root,
     server: server,
     serverIntegrationSpecs: [],

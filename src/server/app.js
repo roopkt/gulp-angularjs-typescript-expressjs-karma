@@ -1,6 +1,6 @@
 /*jshint node:true*/
 'use strict';
-
+var path = require('path');
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
@@ -11,7 +11,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var port = process.env.PORT || 2333;
 var routes;
-var thirdPartyAssets = ['./node_modules/iam/assets'];
+const thirdPartyAssets = ['./node_modules/IAM/assets/']
 
 var environment = process.env.NODE_ENV;
 
@@ -45,13 +45,15 @@ switch (environment) {
   default:
     console.log('** DEV **');
     app.use(express.static('./src/client'));
+
     app.use(express.static('./'));
     app.use(express.static('./tmp'));
-    app.use('/*', express.static('./src/client/index.html'));
-    app.use('/assets', express.static('./src/client/assets'));
-    thirdPartyAssets.forEach(function (a) {
-      app.use('/assets', express.static(a));
+    thirdPartyAssets.forEach(function (assets) {
+      app.use('/assets', express.static(
+        assets
+      ));
     });
+    app.use('/*', express.static('./src/client/index.html'));
     break;
 }
 

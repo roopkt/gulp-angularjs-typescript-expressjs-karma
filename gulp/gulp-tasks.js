@@ -42,7 +42,7 @@ function gulpTasks() {
   let isDev = args.dev;
   const isProd = args.prod;
   log('args' + JSON.stringify(args));
-  
+
   if (!isProd) {
     isDev = true;
   }
@@ -56,12 +56,11 @@ function gulpTasks() {
   }
 
   //FUNCTIONS
-  const import3rdPartyAssets = gulp.series(import3rdPartyImages, import3rdPartyFonts);
   const testOnce = gulp.series(compileOnce, startTestOnce);
   const testAlways = gulp.series(compileOnce, autoTest);
   const optimize = gulp.series(testOnce, startOptimize);
-  const serveDev = gulp.series(compileOnce, import3rdPartyAssets, startServeDev);
-  const serveBuild = gulp.series(compileOnce, import3rdPartyAssets, startServeBuild);
+  const serveDev = gulp.series(compileOnce, startServeDev);
+  const serveBuild = gulp.series(compileOnce, startServeBuild);
   const styles = gulp.series(cleanStyles, compileLess);
   const images = gulp.series(cleanImages, buildImage);
   const fonts = gulp.series(cleanFonts, buildFonts);
@@ -71,7 +70,6 @@ function gulpTasks() {
     build: gulp.series(cleanCode, gulp.parallel(
       copyPackageJson,
       gulp.series(
-        import3rdPartyAssets,
         fonts,
         images,
         styles,
@@ -112,28 +110,6 @@ function gulpTasks() {
     } else {
       log('File ' + event);
     }
-  }
-
-  function import3rdPartyImages(done) {
-    log('Importing 3rd party images');
-
-    const images = config.assets.thirdParty.images;
-
-    return gulp
-      .src(images)
-      .pipe($.if(taskOptions.imageoptimize, $.image()))
-      .pipe(gulp.dest(config.imagesDir))
-      .on('end', () => done());
-  }
-
-  function import3rdPartyFonts(done) {
-    log('Importing 3rd party fonts');
-
-    const fonts = config.assets.thirdParty.fonts;
-
-    return gulp.src(fonts)
-      .pipe(gulp.dest(config.fontsDir))
-      .on('end', () => done());
   }
 
   function compileOnce(done) {
@@ -247,7 +223,7 @@ function gulpTasks() {
     const assets = config.assets;
 
     return gulp
-      .src(assets.local.images)
+      .src(assets.images)
       .pipe($.if(taskOptions.imageoptimize, $.image()))
       .pipe(gulp.dest(assets.imagesOutput))
       .on('end', () => done());
@@ -258,7 +234,7 @@ function gulpTasks() {
     const assets = config.assets;
 
     return gulp
-      .src(assets.local.fonts)
+      .src(assets.fonts)
       .pipe($.if(taskOptions.imageoptimize, $.image()))
       .pipe(gulp.dest(assets.fontsOutput))
       .on('end', () => done());
