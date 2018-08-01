@@ -18,7 +18,8 @@ const devConfig = {
   dev: true,
   port: config.port,
   tsconfig: 'tsconfig.json',
-  notify: true
+  notify: true,
+  imageoptimize: false,
 };
 
 const prodConfig = {
@@ -30,41 +31,48 @@ const prodConfig = {
   prod: true,
   port: config.port,
   tsconfig: 'tsconfig.prod.json',
-  notify: false
+  notify: false,
+  imageoptimize: false,
 }
 
 function gulpTasks() {
-  let taskConfig;
+  let taskOptions;
+
   //PROPERTIES
   let isDev = args.dev;
   const isProd = args.prod;
   log('args' + JSON.stringify(args));
+  
   if (!isProd) {
     isDev = true;
   }
 
   if (isDev) {
     process.env.NODE_ENV = 'dev';
-    taskConfig = _.assign(devConfig, args);
+    taskOptions = _.assign(devConfig, args);
   } else {
     process.env.NODE_ENV = 'prod';
-    taskConfig = _.assign(prodConfig, args);
+    taskOptions = _.assign(prodConfig, args);
   }
 
   //FUNCTIONS
+  const import3rdPartyAssets = gulp.series(import3rdPartyImages, import3rdPartyFonts);
   const testOnce = gulp.series(compileOnce, startTestOnce);
   const testAlways = gulp.series(compileOnce, autoTest);
   const optimize = gulp.series(testOnce, startOptimize);
-  const serveDev = gulp.series(compileOnce, startServeDev);
-  const serveBuild = gulp.series(compileOnce, optimize, startServeBuild);
+  const serveDev = gulp.series(compileOnce, import3rdPartyAssets, startServeDev);
+  const serveBuild = gulp.series(compileOnce, import3rdPartyAssets, startServeBuild);
   const styles = gulp.series(cleanStyles, compileLess);
-  const images = gulp.series(cleanImages, processImages);
+  const images = gulp.series(cleanImages, buildImage);
+  const fonts = gulp.series(cleanFonts, buildFonts);
 
   //TASKS
   var tasks = {
     build: gulp.series(cleanCode, gulp.parallel(
       copyPackageJson,
       gulp.series(
+        import3rdPartyAssets,
+        fonts,
         images,
         styles,
         optimize,
@@ -74,7 +82,7 @@ function gulpTasks() {
     serve: isDev ? serveDev : serveBuild,
     styles: styles,
     images: images,
-    test: taskConfig.singlerun ? testOnce : testAlways
+    test: taskOptions.singlerun ? testOnce : testAlways
   };
 
   return tasks;
@@ -106,21 +114,43 @@ function gulpTasks() {
     }
   }
 
+  function import3rdPartyImages(done) {
+    log('Importing 3rd party images');
+
+    const images = config.assets.thirdParty.images;
+
+    return gulp
+      .src(images)
+      .pipe($.if(taskOptions.imageoptimize, $.image()))
+      .pipe(gulp.dest(config.imagesDir))
+      .on('end', () => done());
+  }
+
+  function import3rdPartyFonts(done) {
+    log('Importing 3rd party fonts');
+
+    const fonts = config.assets.thirdParty.fonts;
+
+    return gulp.src(fonts)
+      .pipe(gulp.dest(config.fontsDir))
+      .on('end', () => done());
+  }
+
   function compileOnce(done) {
     log('Compiling Typescripts to JS in ' +
       getRunMode() + ' mode');
-    log('Compiling Typescripts using config: ' + taskConfig.tsconfig);
-    if (taskConfig.sourcemaps) {
+    log('Compiling Typescripts using config: ' + taskOptions.tsconfig);
+    if (taskOptions.sourcemaps) {
       log('Creating sourcemaps');
     }
 
     var reporter;
 
-    const tsProject = $.typescript.createProject(taskConfig.tsconfig, {
+    const tsProject = $.typescript.createProject(taskOptions.tsconfig, {
       typescript: require('typescript')
     });
 
-    if (taskConfig.report) {
+    if (taskOptions.report) {
       reporter = $.typescript.reporter.fullReporter();
     }
 
@@ -135,12 +165,12 @@ function gulpTasks() {
 
     return tsProject
       .src()
-      .pipe($.if(taskConfig.sourcemaps, $.sourcemaps.init()))
+      .pipe($.if(taskOptions.sourcemaps, $.sourcemaps.init()))
       .pipe($.plumber())
-      .pipe($.ifElse(taskConfig.report, tsProject.bind(tsProject, reporter), tsProject))
+      .pipe($.ifElse(taskOptions.report, tsProject.bind(tsProject, reporter), tsProject))
       .js
-      .pipe($.if(taskConfig.sourcemaps, $.sourcemaps.mapSources()))
-      .pipe($.if(taskConfig.sourcemaps, $.sourcemaps.write()))
+      .pipe($.if(taskOptions.sourcemaps, $.sourcemaps.mapSources()))
+      .pipe($.if(taskOptions.sourcemaps, $.sourcemaps.write()))
       .pipe($.ngAnnotate())
       .pipe(embedTemplates(embedOptions))
       .pipe(gulp.dest(config.root))
@@ -165,7 +195,11 @@ function gulpTasks() {
   }
 
   function cleanImages(done) {
-    clean(config.output.images + '**/*.*', done);
+    clean(config.assets.imagesOutput + '**/*.*', done);
+  }
+
+  function cleanFonts(done) {
+    clean(config.assets.fontsOutput + '**/*.*', done);
   }
 
   function copyPackageJson(done) {
@@ -194,7 +228,7 @@ function gulpTasks() {
   }
 
   function logConfig() {
-    log('===taskConfig===\n' + JSON.stringify(taskConfig));
+    log('===taskConfig===\n' + JSON.stringify(taskOptions));
   }
 
   function notify(options) {
@@ -208,13 +242,25 @@ function gulpTasks() {
     notifier.notify(notifyOptions);
   }
 
-  function processImages(done) {
+  function buildImage(done) {
     log('Copying and compressing the images');
+    const assets = config.assets;
 
     return gulp
-      .src(config.images)
-      .pipe($.image())
-      .pipe(gulp.dest(config.output.images))
+      .src(assets.local.images)
+      .pipe($.if(taskOptions.imageoptimize, $.image()))
+      .pipe(gulp.dest(assets.imagesOutput))
+      .on('end', () => done());
+  }
+
+  function buildFonts(done) {
+    log('Copying fonts');
+    const assets = config.assets;
+
+    return gulp
+      .src(assets.local.fonts)
+      .pipe($.if(taskOptions.imageoptimize, $.image()))
+      .pipe(gulp.dest(assets.fontsOutput))
       .on('end', () => done());
   }
 
@@ -224,7 +270,7 @@ function gulpTasks() {
   }
 
   function startBuild(done) {
-    log('Building everything with options: ' + JSON.stringify(taskConfig));
+    log('Building everything with options: ' + JSON.stringify(taskOptions));
     const subTitle = 'Deployed to the ' + config.dest + ' folder.';
     var msg = {
       title: 'gulp build',
@@ -232,7 +278,7 @@ function gulpTasks() {
     };
 
     log(msg);
-    if (taskConfig.notify) {
+    if (taskOptions.notify) {
       notify(msg);
     }
     done();
@@ -246,7 +292,7 @@ function gulpTasks() {
       .pipe($.plumber())
       .pipe($.useref())
       .pipe(
-        $.if('**/' + config.optimized.app, $.if(taskConfig.uglify, $.uglify())))
+        $.if('**/' + config.optimized.app, $.if(taskOptions.uglify, $.uglify())))
       .pipe(gulp.dest(config.dest));
   }
 
@@ -298,7 +344,7 @@ function gulpTasks() {
       script: config.nodeServer,
       delayTime: 1,
       env: {
-        'PORT': taskConfig.port,
+        'PORT': taskOptions.port,
         'NODE_ENV': isDev ? 'dev' : 'prod'
       },
       watch: [config.server]
@@ -330,7 +376,7 @@ function gulpTasks() {
       return;
     }
 
-    log('Starting browser-sync on port ' + taskConfig.port);
+    log('Starting browser-sync on port ' + taskOptions.port);
     // log('Watching files : \n' + config.watchFiles)
 
     if (isDev) {
@@ -340,7 +386,7 @@ function gulpTasks() {
     }
 
     var browserSyncOptions = {
-      proxy: 'localhost:' + taskConfig.port,
+      proxy: 'localhost:' + taskOptions.port,
       port: 3000,
       files: [],
       ghostMode: {

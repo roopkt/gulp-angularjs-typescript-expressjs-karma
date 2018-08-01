@@ -5,13 +5,14 @@ module.exports = function crateConfig() {
   const root = path.join(workingDir, 'src/');
   const report = path.join(workingDir, 'report/');
   const dest = path.join(workingDir, 'dist/');
-  const out = path.join(workingDir, 'out/');
   const temp = path.join(workingDir, '.temp/');
   const nodeDir = path.join(workingDir, 'node_modules/');
   const client = path.join(root, 'client/');
   const clientApp = path.join(client, 'app/');
   const index = path.join(client, 'index.html');
   const server = path.join(root, 'server/');
+  const imagesDir = path.join(client, 'assets/images');
+  const fontsDir = path.join(client, 'assets/fonts');
 
   const config = {
     allTs: [
@@ -36,10 +37,11 @@ module.exports = function crateConfig() {
      * folder location where build artifacts will go
      */
     dest: dest,
+    fontsDir: fontsDir,
     html: clientApp + '**/*.html',
     icon: path.join(__dirname, './gulp.png'),
+    imagesDir: imagesDir,
     index: index,
-    images: path.join(client, 'assets/images/**/*.*'),
     less: [
       client + 'styles/styles.less'
     ],
@@ -51,9 +53,20 @@ module.exports = function crateConfig() {
       app: 'app.bundle.js',
       lib: 'lib.bundle.js'
     },
-    output: {
-      images: path.join(dest, 'assets/images/'),
-      fonts: path.join(dest, 'assets/fonts/')
+    assets: {
+      imagesOutput: path.join(dest, 'assets/images/'),
+      fontsOutput: path.join(dest, 'assets/fonts/'),
+      thirdParty: {
+        images: [path.join(nodeDir, 'iam/assets/images/**/*.*'), path.join(nodeDir, 'iam1/assets/images/**/*.*')
+        ]
+        ,
+        fonts: [path.join(nodeDir, 'iam/assets/fonts/**/*.*'), path.join(nodeDir, 'iam1/assets/fonts/**/*.*')
+        ]
+      },
+      local: {
+        images: [path.join(imagesDir, '**/*.*')],
+        fonts: [path.join(fontsDir, '**/*.*')],
+      }
     },
     port: 2122,
     root: root,
