@@ -39,20 +39,21 @@ module.exports = function crateConfig() {
     html: clientApp + '**/*.html',
     icon: path.join(__dirname, './gulp.png'),
     index: index,
+    images: path.join(client, 'assets/images/**/*.*'),
     less: [
       client + 'styles/styles.less'
     ],
     nodeServer: './src/server/app.js',
-    nodeModules: [
-
-    ],
     localModules: [
 
     ],
-    out: out,
     optimized: {
-      app: 'app.js',
-      lib: 'lib.js'
+      app: 'app.bundle.js',
+      lib: 'lib.bundle.js'
+    },
+    output: {
+      images: path.join(dest, 'assets/images/'),
+      fonts: path.join(dest, 'assets/fonts/')
     },
     port: 2122,
     root: root,

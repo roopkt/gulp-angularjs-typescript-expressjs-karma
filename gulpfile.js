@@ -7,6 +7,7 @@ gulp.task('build', tasks.build);
  * clean: it cleans destination folder and other temp folders
  */
 gulp.task('clean-code', tasks.cleanCode);
+gulp.task('images', tasks.images);
 
 /**
  * serve: compile typescript and run browser

@@ -58,13 +58,14 @@ function gulpTasks() {
   const serveDev = gulp.series(compileOnce, startServeDev);
   const serveBuild = gulp.series(compileOnce, optimize, startServeBuild);
   const styles = gulp.series(cleanStyles, compileLess);
-
+  const images = gulp.series(cleanImages, processImages);
 
   //TASKS
   var tasks = {
     build: gulp.series(cleanCode, gulp.parallel(
       copyPackageJson,
       gulp.series(
+        images,
         styles,
         optimize,
         startBuild)
@@ -72,10 +73,17 @@ function gulpTasks() {
     cleanCode: cleanCode,
     serve: isDev ? serveDev : serveBuild,
     styles: styles,
+    images: images,
     test: taskConfig.singlerun ? testOnce : testAlways
   };
 
   return tasks;
+
+  function autoTest(done) {
+    logConfig();
+    gulp.watch([config.index, config.html, config.ts, config.testTs], startCompileOnce);
+    startTests(false/* singleRun */, done);
+  };
 
   function cleanCode(done) {
     const files = [].concat(
@@ -156,6 +164,10 @@ function gulpTasks() {
     clean(config.temp + '**/*.css', done);
   }
 
+  function cleanImages(done) {
+    clean(config.output.images + '**/*.*', done);
+  }
+
   function copyPackageJson(done) {
     log('Copying package.json');
 
@@ -194,6 +206,21 @@ function gulpTasks() {
     };
     _.assign(notifyOptions, options);
     notifier.notify(notifyOptions);
+  }
+
+  function processImages(done) {
+    log('Copying and compressing the images');
+
+    return gulp
+      .src(config.images)
+      .pipe($.image())
+      .pipe(gulp.dest(config.output.images))
+      .on('end', () => done());
+  }
+
+  function reloadBrowser(done) {
+    browserSync.reload();
+    done();
   }
 
   function startBuild(done) {
@@ -337,9 +364,22 @@ function gulpTasks() {
     browserSync(browserSyncOptions);
   }
 
-  function reloadBrowser(done) {
-    browserSync.reload();
-    done();
+  function startServeDev() {
+    logConfig();
+    startServe(true/* isDev */);
+  }
+
+  function startServeBuild() {
+    startServe(false/* isDev */);
+  }
+
+  function startCompileOnce(done) {
+    compileOnce(done);
+  }
+
+  function startTestOnce(done) {
+    logConfig();
+    startTests(true /* singleRun */, done);
   }
 
   function watchWhileServeBuild() {
@@ -362,8 +402,7 @@ function gulpTasks() {
       config.localModules,
       config.less,
       config.ts,
-      config.html,
-      config.index
+      config.html
     ];
 
     gulp.watch(
@@ -377,32 +416,13 @@ function gulpTasks() {
       )
     );
 
+    gulp.watch([config.index], gulp.series(reloadBrowser));
+
     log('watching files while serving: ' + JSON.stringify(files));
   }
 
-  function startServeDev() {
-    logConfig();
-    startServe(true/* isDev */);
-  }
 
-  function startServeBuild() {
-    startServe(false/* isDev */);
-  }
 
-  function startCompileOnce(done) {
-    compileOnce(done);
-  }
-
-  function startTestOnce(done) {
-    logConfig();
-    startTests(true /* singleRun */, done);
-  }
-
-  function autoTest(done) {
-    logConfig();
-    gulp.watch([config.index, config.html, config.ts, config.testTs], startCompileOnce);
-    startTests(false/* singleRun */, done);
-  };
 }
 
 module.exports = gulpTasks;
